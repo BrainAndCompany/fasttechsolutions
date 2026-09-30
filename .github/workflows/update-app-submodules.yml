@@ -1,0 +1,111 @@
+# When admin/employee push to main, bump their submodule pointers in this backup repo.
+name: Update app submodules
+
+on:
+  repository_dispatch:
+    types: [sync-fts-admin, sync-fts-employee, sync-apps]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which submodule(s) to update
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - fts-admin
+          - fts-employee
+  schedule:
+    - cron: "0 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-app-submodules
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BACKUP_SYNC_TOKEN || github.token }}
+          submodules: false
+          fetch-depth: 0
+
+      - name: Decide targets
+        id: targets
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TYPE: ${{ github.event.action }}
+          INPUT_TARGET: ${{ github.event.inputs.target }}
+        run: |
+          sync_admin=false
+          sync_employee=false
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            case "$EVENT_TYPE" in
+              sync-fts-admin) sync_admin=true ;;
+              sync-fts-employee) sync_employee=true ;;
+              sync-apps) sync_admin=true; sync_employee=true ;;
+            esac
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "$INPUT_TARGET" in
+              fts-admin) sync_admin=true ;;
+              fts-employee) sync_employee=true ;;
+              both) sync_admin=true; sync_employee=true ;;
+            esac
+          else
+            sync_admin=true
+            sync_employee=true
+          fi
+          echo "admin=$sync_admin" >> "$GITHUB_OUTPUT"
+          echo "employee=$sync_employee" >> "$GITHUB_OUTPUT"
+
+      - name: Update fts-admin submodule
+        if: steps.targets.outputs.admin == 'true'
+        run: |
+          set -euo pipefail
+          git submodule update --init fts-admin
+          git -C fts-admin fetch origin main
+          git -C fts-admin checkout -B main origin/main
+          echo "ADMIN_SHA=$(git -C fts-admin rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          git add fts-admin
+
+      - name: Update fts-employee submodule
+        if: steps.targets.outputs.employee == 'true'
+        run: |
+          set -euo pipefail
+          git submodule update --init fts-employee
+          git -C fts-employee fetch origin main
+          git -C fts-employee checkout -B main origin/main
+          echo "EMPLOYEE_SHA=$(git -C fts-employee rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          git add fts-employee
+
+      - name: Commit and push
+        env:
+          ADMIN_SYNCED: ${{ steps.targets.outputs.admin }}
+          EMPLOYEE_SYNCED: ${{ steps.targets.outputs.employee }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            echo "Submodule pointers already up to date."
+            exit 0
+          fi
+          parts=()
+          if [ "$ADMIN_SYNCED" = "true" ] && [ -n "${ADMIN_SHA:-}" ]; then
+            parts+=("fts-admin@$ADMIN_SHA")
+          elif [ "$ADMIN_SYNCED" = "true" ]; then
+            parts+=("fts-admin")
+          fi
+          if [ "$EMPLOYEE_SYNCED" = "true" ] && [ -n "${EMPLOYEE_SHA:-}" ]; then
+            parts+=("fts-employee@$EMPLOYEE_SHA")
+          elif [ "$EMPLOYEE_SYNCED" = "true" ]; then
+            parts+=("fts-employee")
+          fi
+          git commit -m "chore(backup): bump ${parts[*]}"
+          git push

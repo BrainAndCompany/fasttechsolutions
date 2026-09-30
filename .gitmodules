@@ -1,0 +1,8 @@
+[submodule "fts-admin"]
+	path = fts-admin
+	url = https://github.com/brainandco/fts-admin.git
+	branch = main
+[submodule "fts-employee"]
+	path = fts-employee
+	url = https://github.com/brainandco/fts-employee.git
+	branch = main
