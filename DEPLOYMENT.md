@@ -2,8 +2,10 @@
 
 Both portals use **one Supabase project** (one database). You deploy **two separate Next.js apps** on two subdomains.
 
-- **admin.fts-ksa.com** â†’ Admin portal (`fts-admin`)
-- **employee.fts-ksa.com** (or **employee-fts-ksa.com**) â†’ Employee portal (`fts-employee`)
+- **admin.fts-ksa.com** → Admin portal (`fts-admin`)
+- **employee.fts-ksa.com** (or **employee-fts-ksa.com**) → Employee portal (`fts-employee`)
+
+**Job portal is separate:** see [`fts-job-portal/DEPLOYMENT.md`](./fts-job-portal/DEPLOYMENT.md) — subdomain **jobs.fts-ksa.com**, **dedicated** Supabase project (`tmcxeobmdzrmsyklzfmg`), not this shared admin/employee DB.
 
 Use your actual subdomains in env vars and Supabase redirect URLs below.
 
@@ -54,9 +56,13 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 # Admin portal public URL (for emails and links)
 NEXT_PUBLIC_APP_URL=https://admin.fts-ksa.com
 
-# Resend (invitation + credentials emails) — FROM must match a verified domain in Resend
-RESEND_API_KEY=your_resend_api_key
-RESEND_FROM_EMAIL=noreply@admin.fts-ksa.com
+# SMTP (invitation + credentials emails) — noreply@fts-ksa.com
+SMTP_HOST=mail.fts-ksa.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=noreply@fts-ksa.com
+SMTP_PASSWORD=your_mailbox_password
+SMTP_FROM=noreply@fts-ksa.com
 # Canonical portal URL in the post-accept credentials email (default https://admin.fts-ksa.com)
 ADMIN_PORTAL_PUBLIC_URL=https://admin.fts-ksa.com
 
@@ -169,7 +175,7 @@ You have **two Next.js apps** in one repo:
 | Supabase anon key | Same | Same |
 | Service role key | Same | Same |
 | Portal URL env | `NEXT_PUBLIC_APP_URL=https://admin.fts-ksa.com` | `NEXT_PUBLIC_ADMIN_PORTAL_URL=https://admin.fts-ksa.com` |
-| Resend / EMPLOYEE_PORTAL_URL | Set for admin app only | Not needed |
+| SMTP / EMPLOYEE_PORTAL_URL | Set for admin app only | Not needed |
 | Subdomain in Supabase redirect URLs | ✅ | ✅ |
 
 ---

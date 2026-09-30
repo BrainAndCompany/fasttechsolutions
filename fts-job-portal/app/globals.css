@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@theme {
+  --color-teal: #0690ae;
+  --color-teal-text: #067a93;
+  --color-teal-deep: #055e71;
+  --color-ink: #0a0e12;
+  --color-slate: #4a5560;
+  --color-mist: #f4f7f8;
+  --color-white: #ffffff;
+  --color-line: #e2e8ea;
+  --color-line-strong: #d8dee1;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-poppins), var(--font-inter), ui-sans-serif,
+    system-ui, sans-serif;
+  --radius-sm: 4px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-mist font-sans text-ink antialiased;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-teal) 28%, white);
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2.5 text-sm font-semibold transition-colors;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2.5 text-sm font-semibold transition-colors bg-teal text-white hover:bg-teal-text;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-teal hover:text-teal;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm px-3 py-2 text-sm font-semibold text-slate transition-colors hover:bg-white hover:text-teal;
+  }
+  .section-label {
+    @apply text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-teal;
+  }
+  .input {
+    @apply w-full rounded-sm border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-slate/55 focus:border-teal;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate;
+  }
+  .card {
+    @apply rounded-sm border border-line bg-white;
+  }
+  .panel {
+    @apply rounded-sm border border-line bg-white;
+  }
+  .page-shell {
+    @apply mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14;
+  }
+  .page-title {
+    @apply font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl;
+  }
+  .page-lead {
+    @apply mt-2 max-w-2xl text-sm leading-relaxed text-slate sm:text-base;
+  }
+  .meta-chip {
+    @apply inline-flex items-center rounded-sm border border-line bg-mist px-2 py-0.5 text-xs font-medium text-slate;
+  }
+  .status-pill {
+    @apply inline-flex items-center rounded-sm border border-line bg-mist px-2.5 py-1 text-xs font-semibold text-teal;
+  }
+  .auth-shell {
+    @apply relative flex flex-1 flex-col;
+    background:
+      radial-gradient(ellipse 80% 50% at 10% -10%, color-mix(in srgb, #0690ae 18%, transparent), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, color-mix(in srgb, #0690ae 10%, transparent), transparent),
+      #f4f7f8;
+  }
+  .auth-card {
+    @apply w-full max-w-md border border-line bg-white px-6 py-8 sm:px-8 sm:py-10;
+  }
+  .hero-surface {
+    @apply bg-teal;
+  }
+  .job-row {
+    @apply block border-b border-line bg-white px-4 py-5 transition-colors hover:bg-mist/90 sm:px-5;
+  }
+  .stat-figure {
+    @apply font-display text-3xl font-bold tabular-nums tracking-tight text-teal;
+  }
+}
