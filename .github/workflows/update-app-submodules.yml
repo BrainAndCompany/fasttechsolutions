@@ -1,9 +1,8 @@
-# When admin/employee push to main, bump their submodule pointers in this backup repo.
+# Hourly (and manual) bump of fts-admin / fts-employee submodule pointers.
+# No PAT required — uses the default GITHUB_TOKEN in this repo.
 name: Update app submodules
 
 on:
-  repository_dispatch:
-    types: [sync-fts-admin, sync-fts-employee, sync-apps]
   workflow_dispatch:
     inputs:
       target:
@@ -16,6 +15,7 @@ on:
           - fts-admin
           - fts-employee
   schedule:
+    # About once per hour
     - cron: "0 * * * *"
 
 permissions:
@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.BACKUP_SYNC_TOKEN || github.token }}
+          token: ${{ github.token }}
           submodules: false
           fetch-depth: 0
 
@@ -40,18 +40,11 @@ jobs:
         id: targets
         env:
           EVENT_NAME: ${{ github.event_name }}
-          EVENT_TYPE: ${{ github.event.action }}
           INPUT_TARGET: ${{ github.event.inputs.target }}
         run: |
           sync_admin=false
           sync_employee=false
-          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
-            case "$EVENT_TYPE" in
-              sync-fts-admin) sync_admin=true ;;
-              sync-fts-employee) sync_employee=true ;;
-              sync-apps) sync_admin=true; sync_employee=true ;;
-            esac
-          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             case "$INPUT_TARGET" in
               fts-admin) sync_admin=true ;;
               fts-employee) sync_employee=true ;;
